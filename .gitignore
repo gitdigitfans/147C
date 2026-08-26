@@ -3,7 +3,7 @@ node_modules
 out
 build
 .open-next
-.env*
+!.env.local
 !.env.local.example
 .DS_Store
 *.log
