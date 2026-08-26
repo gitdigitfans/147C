@@ -1,0 +1,239 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-cairo: "Cairo", "Segoe UI", Tahoma, "Noto Kufi Arabic", Arial, sans-serif;
+  --font-inter: "Inter", "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-playfair: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Guard against any animated element (3D card flips, decorative glows,
+   sweeps, etc) briefly overflowing the viewport width and making the whole
+   page appear to shift/scroll left-right, especially on mobile. */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Deterrents against casually saving product photos: disables the
+   long-press "save/share image" callout on mobile, drag-ghost dragging, and
+   text-style selection highlighting on images site-wide. Paired with
+   components/ImageProtection.tsx, which blocks right-click and dragstart on
+   <img> elements. This is not real DRM - it only removes the obvious paths. */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Warm plaster/stucco backdrop applied site-wide - layered soft radial
+   light pools over a fine-grain SVG noise texture, all in the site's warm
+   ivory/beige tone, approximating a softly-lit textured wall finish. */
+body {
+  background-color: #f3ecdd;
+  background-image:
+    radial-gradient(ellipse 850px 550px at 20% 0%, rgba(255, 252, 244, 0.7), transparent 62%),
+    radial-gradient(ellipse 800px 550px at 60% 5%, rgba(255, 252, 244, 0.55), transparent 62%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0.68  0 0 0 0 0.58  0 0 0 0 0.42  0 0 0 0.075 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-attachment: fixed, fixed, fixed;
+  background-size: auto, auto, 200px 200px;
+}
+
+::selection {
+  background-color: #c9a15e;
+  color: #1a1a1a;
+}
+
+@layer utilities {
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #c9a15e 0%, #b8860b 50%, #8b6b3d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Continuous, seamless marquee - a pure CSS keyframe loop (rather than a
+   JS-driven framer-motion tween) so the scroll never visibly pauses/resets
+   between cycles; the track is duplicated 3x in the markup and this only
+   ever translates by exactly one third of the track width. */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.3333%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee-scroll 22s linear infinite;
+}
+
+/* Thin, subtle scrollbar for internally-scrolling panels (e.g. the shop
+   sidebar filter list) so a long category list scrolls within its own box
+   instead of an unstyled, heavy default scrollbar. */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #c9a15e transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(201, 161, 94, 0.5);
+  border-radius: 999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(201, 161, 94, 0.8);
+}
+
+[dir="rtl"] .animate-marquee {
+  animation-direction: reverse;
+}
+
+/* Slow continuous rotation used for the hover-triggered conic-gradient
+   glow halo on the TrustBar feature boxes. */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 4s linear infinite;
+}
+
+/* Diagonal "moving light" sweep used on category cards - a soft angled
+   beam of light that continuously travels across the arched photo, on top
+   of the always-on dark/copper overlay and icon+name. Purely decorative,
+   pointer-events disabled, clipped by the card's own overflow-hidden. */
+@keyframes light-sweep {
+  0% {
+    transform: translateX(-70%) translateY(-70%) rotate(20deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  88% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(220%) translateY(220%) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+/* Light traveling around a card's actual rectangular frame (straight edges
+   + rounded corners), used on the mobile "Why Pharaoh?" feature showcase.
+   Implemented as an SVG <rect> stroke-dash trace (see TrustBar.tsx) rather
+   than a rotating conic-gradient ring - a conic gradient reads as a
+   circular sweep on short, heavily-rounded cards, while animating
+   stroke-dashoffset along the rect's own path (normalized via
+   pathLength=100) hugs the frame at a constant pace regardless of aspect
+   ratio or corner radius. */
+@keyframes trace-dash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.trace-dash {
+  animation: trace-dash 3s linear infinite;
+}
+
+.light-sweep {
+  position: absolute;
+  top: -40%;
+  left: -40%;
+  width: 30%;
+  height: 220%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.65) 45%,
+    rgba(255, 214, 140, 0.4) 60%,
+    transparent 100%
+  );
+  animation: light-sweep 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* On phones the traveling sweep read as an odd left-right jitter rather
+   than a diagonal light - freeze it as a static diagonal highlight instead
+   of animating it there. */
+@media (max-width: 640px) {
+  .light-sweep {
+    animation: none;
+    opacity: 0.45;
+    transform: translateX(40%) translateY(40%) rotate(20deg);
+  }
+}
+
+/* Formatted product long-description (sourced from the furniture site as
+   HTML). The markup contains <p>, <strong>, <br>, <ul>/<li>, <hr> so these
+   rules keep it readable and RTL-friendly inside the product page. */
+.pdp-description-html p {
+  margin-bottom: 0.75rem;
+}
+
+.pdp-description-html p:last-child {
+  margin-bottom: 0;
+}
+
+.pdp-description-html strong {
+  font-weight: 700;
+  color: #44403c;
+}
+
+.pdp-description-html ul,
+.pdp-description-html ol {
+  margin: 0 0 0.75rem 0;
+  padding-inline-start: 1.4rem;
+  list-style: disc;
+}
+
+.pdp-description-html ol {
+  list-style: decimal;
+}
+
+.pdp-description-html li {
+  margin-bottom: 0.25rem;
+}
+
+.pdp-description-html hr {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  margin: 1rem 0;
+}
+
+.pdp-description-html h1,
+.pdp-description-html h2,
+.pdp-description-html h3,
+.pdp-description-html h4 {
+  font-weight: 700;
+  color: #292524;
+  margin-bottom: 0.5rem;
+}

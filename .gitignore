@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+build
+.open-next
+.env*
+.DS_Store
+*.log
+.wrangler
+/Photo prodect
+/phote
+/New folder

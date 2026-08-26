@@ -1,0 +1,38 @@
+name = "pharaoh-furniture"
+main = "worker-entry.ts"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+account_id = "5969583f1b34dc3819e202892b6d3514"
+
+# Runs worker-entry.ts's scheduled() handler every 3 days to keep the
+# Supabase project alive (prevents free-tier auto-pause from inactivity).
+[triggers]
+crons = ["0 0 */3 * *"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "pharaoh-furniture"
+
+[[d1_databases]]
+binding = "DB"
+database_id = "d4b3b08f-fe54-4cff-a0e6-a38d767748c4"
+
+[vars]
+CLOUDFLARE_ACCOUNT_ID = "5969583f1b34dc3819e202892b6d3514"
+# CLOUDFLARE_API_TOKEN is set as a Worker secret (wrangler secret put), not committed here.
+CLOUDFLARE_D1_DATABASE_ID = "d4b3b08f-fe54-4cff-a0e6-a38d767748c4"
+NEXT_PUBLIC_SUPABASE_URL = "https://vnfvzlahcetcdcjcfewk.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuZnZ6bGFoY2V0Y2RjamNmZXdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjM3NDMsImV4cCI6MjEwMDg5OTc0M30.uqdfXLAA-LSUMWLa0On5BC-V6cEs7cwHGt9XQpWQWpI"
+# Used by worker-entry.ts's scheduled() cron handler (same project as above,
+# just without the NEXT_PUBLIC_ prefix since the worker doesn't need Next's
+# client-bundling rules). Prefer moving these to `wrangler secret put` for
+# production - see note below.
+SUPABASE_URL = "https://vnfvzlahcetcdcjcfewk.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuZnZ6bGFoY2V0Y2RjamNmZXdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjM3NDMsImV4cCI6MjEwMDg5OTc0M30.uqdfXLAA-LSUMWLa0On5BC-V6cEs7cwHGt9XQpWQWpI"
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = "cxlqxdrc"
+CLOUDINARY_API_KEY = "976656122995981"
