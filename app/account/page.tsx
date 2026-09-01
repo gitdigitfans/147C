@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { d1Query } from "@/lib/d1";
 import AccountLogoutButton from "./AccountLogoutButton";
+import { cldUrl } from "@/lib/cloudinaryUrl";
 
 
 const text = {
@@ -158,8 +159,10 @@ export default async function AccountPage() {
                   <div className="aspect-square bg-white overflow-hidden">
                     {p.image && (
                       <img
-                        src={p.image}
+                        src={cldUrl(p.image, 300)}
                         alt={p.name_ar}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />
                     )}

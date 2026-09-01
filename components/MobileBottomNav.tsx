@@ -80,7 +80,7 @@ export default function MobileBottomNav() {
           >
             <form
               onSubmit={handleSearchSubmit}
-              className="flex items-center gap-2 bg-white rounded-full border border-gold/40 shadow-lg px-3 py-2"
+              className="flex items-center gap-2 bg-white rounded-full border border-gold/40 shadow-lg px-2 py-2 ps-3"
             >
               <Search size={18} className="text-goldDark shrink-0" />
               <input
@@ -88,12 +88,15 @@ export default function MobileBottomNav() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onBlur={() => {
-                  if (!searchQuery) setSearchOpen(false);
-                }}
                 placeholder={t("search_placeholder")}
                 className="flex-1 bg-transparent outline-none text-sm text-charcoal"
               />
+              <button
+                type="submit"
+                className="shrink-0 px-4 py-1.5 rounded-full bg-gradient-to-br from-gold to-goldDark text-white text-sm font-bold"
+              >
+                {t("bottomnav_search")}
+              </button>
             </form>
           </motion.div>
         )}

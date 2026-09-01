@@ -7,6 +7,7 @@ import { useLocale } from "@/lib/i18n";
 import { furnitureImg } from "@/lib/data";
 import { getCategoryIcon } from "@/lib/categoryIcons";
 import Reveal from "@/components/Reveal";
+import { cldUrl } from "@/lib/cloudinaryUrl";
 
 export interface CategoryVM {
   slug: string;
@@ -39,8 +40,10 @@ export default function CategoriesSlider({ categories }: { categories: CategoryV
             <motion.div whileHover={{ y: -8 }} transition={{ duration: 0.25 }} className="group">
               <div className="relative w-full aspect-square rounded-2xl overflow-hidden shadow-md">
                 <img
-                  src={c.image || furnitureImg(c.seed, 600, 450)}
+                  src={c.image ? cldUrl(c.image, 500) : furnitureImg(c.seed, 600, 450)}
                   alt={c.name[locale]}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 {/* always-visible dual-tone (dark → warm copper) gradient so the icon+name stay legible over any photo */}
@@ -60,8 +63,10 @@ export default function CategoriesSlider({ categories }: { categories: CategoryV
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-3 text-center pointer-events-none">
                   {c.iconUrl ? (
                     <img
-                      src={c.iconUrl}
+                      src={cldUrl(c.iconUrl, 100)}
                       alt=""
+                      loading="lazy"
+                      decoding="async"
                       className="w-14 h-14 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]"
                     />
                   ) : (

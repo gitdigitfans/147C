@@ -10,6 +10,7 @@ import { useCart } from "@/lib/cart";
 import { createClient } from "@/lib/supabase/client";
 import { addToGuestWishlist, isInGuestWishlist, removeFromGuestWishlist } from "@/lib/guestWishlist";
 import { onImgError } from "@/lib/imageFallback";
+import { cldUrl } from "@/lib/cloudinaryUrl";
 
 export interface ColorOption {
   id: string;
@@ -146,18 +147,22 @@ export default function ProductCard({ product, href }: { product: ProductCardVM;
         onMouseLeave={() => setIsHovering(false)}
       >
         <img
-          src={product.image}
+          src={cldUrl(product.image, 500)}
           alt={product.name[locale]}
           onError={onImgError}
+          loading="lazy"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         {product.hoverImage && product.hoverImage !== product.image && (
           <img
             key="hover"
-            src={product.hoverImage}
+            src={cldUrl(product.hoverImage, 500)}
             alt={product.name[locale]}
             aria-hidden
             onError={onImgError}
+            loading="lazy"
+            decoding="async"
             className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
               isHovering ? "opacity-100" : "opacity-0"
             }`}

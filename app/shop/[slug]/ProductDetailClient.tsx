@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +25,7 @@ import { useCart } from "@/lib/cart";
 import { createClient } from "@/lib/supabase/client";
 import Reveal from "@/components/Reveal";
 import { onImgError } from "@/lib/imageFallback";
+import { cldUrl } from "@/lib/cloudinaryUrl";
 
 export interface ProductVM {
   id: string;
@@ -239,6 +240,7 @@ export default function ProductDetailClient({
   const [activeImage, setActiveImage] = useState(0);
   const [galleryHovered, setGalleryHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const justDraggedRef = useRef(false);
   const [selectedValues, setSelectedValues] = useState<Record<string, string>>({});
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [qty, setQty] = useState(1);
@@ -486,37 +488,43 @@ export default function ProductDetailClient({
                 onMouseEnter={() => setGalleryHovered(true)}
                 onMouseLeave={() => setGalleryHovered(false)}
               >
-                <button
-                  onClick={() => setLightboxOpen(true)}
-                  className="absolute inset-0 w-full h-full"
-                  aria-label="zoom"
-                >
+                <div className="absolute inset-0 w-full h-full" aria-label="zoom">
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={activeImage}
-                      src={displayImages[activeImage]}
+                      src={cldUrl(displayImages[activeImage], 900)}
                       alt={product.name[locale]}
                       onError={onImgError}
                       initial={{ opacity: 0, scale: 1.04 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 touch-pan-y"
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 touch-pan-y cursor-pointer"
                       drag={displayImages.length > 1 ? "x" : false}
                       dragConstraints={{ left: 0, right: 0 }}
                       dragElastic={0.3}
                       onDragStart={() => setIsDragging(true)}
                       onDragEnd={(_e, info) => {
                         setIsDragging(false);
+                        if (Math.abs(info.offset.x) > 5) {
+                          justDraggedRef.current = true;
+                        }
                         if (info.offset.x < -80) goNext();
                         else if (info.offset.x > 80) goPrev();
                       }}
+                      onClick={() => {
+                        if (justDraggedRef.current) {
+                          justDraggedRef.current = false;
+                          return;
+                        }
+                        setLightboxOpen(true);
+                      }}
                     />
                   </AnimatePresence>
-                  <span className="absolute bottom-3 end-3 bg-charcoal/60 text-white rounded-full p-2">
+                  <span className="absolute bottom-3 end-3 bg-charcoal/60 text-white rounded-full p-2 pointer-events-none">
                     <ZoomIn size={18} />
                   </span>
-                </button>
+                </div>
                 {displayImages.length > 1 && (
                   <>
                     <button
@@ -554,7 +562,7 @@ export default function ProductDetailClient({
                         i === activeImage ? "border-gold" : "border-transparent"
                       }`}
                     >
-                      <img src={img} alt="" onError={onImgError} className="w-full h-full object-cover" />
+                      <img src={cldUrl(img, 100)} alt="" onError={onImgError} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>
@@ -1375,13 +1383,27 @@ export default function ProductDetailClient({
             <button className="absolute top-4 end-4 text-white" onClick={() => setLightboxOpen(false)} aria-label="close">
               <X size={28} />
             </button>
-            <img
-              src={displayImages[activeImage]}
-              alt={product.name[locale]}
-              onError={onImgError}
-              className="max-w-full max-h-full object-contain rounded-lg"
-              onClick={(e) => e.stopPropagation()}
-            />
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={activeImage}
+                src={cldUrl(displayImages[activeImage], 1600)}
+                alt={product.name[locale]}
+                onError={onImgError}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="max-w-full max-h-full object-contain rounded-lg touch-pan-y"
+                onClick={(e) => e.stopPropagation()}
+                drag={displayImages.length > 1 ? "x" : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.3}
+                onDragEnd={(_e, info) => {
+                  if (info.offset.x < -80) goNext();
+                  else if (info.offset.x > 80) goPrev();
+                }}
+              />
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>

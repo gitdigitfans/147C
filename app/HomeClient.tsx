@@ -10,6 +10,7 @@ import Reveal from "@/components/Reveal";
 import Gallery3D, { type GallerySlideItem } from "@/components/Gallery3D";
 import ProductCard, { type ColorOption } from "@/components/ProductCard";
 import ProductSlider from "@/components/ProductSlider";
+import { cldUrl } from "@/lib/cloudinaryUrl";
 import CategoriesSlider, { type CategoryVM } from "@/components/CategoriesSlider";
 import QualitySection from "@/components/QualitySection";
 import TrustBar from "@/components/TrustBar";
@@ -361,8 +362,10 @@ export default function HomeClient({ latest, best, offers, heroSlides, testimoni
                   className="bg-ivory rounded-2xl p-6 shadow-md h-full flex flex-col">
                   <div className="flex items-center gap-3 mb-4">
                     <img
-                      src={testimonial.image}
+                      src={cldUrl(testimonial.image, 80)}
                       alt={testimonial.name[locale]}
+                      loading="lazy"
+                      decoding="async"
                       className="w-12 h-12 rounded-full object-cover"
                     />
                     <div>

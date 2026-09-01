@@ -6,6 +6,7 @@ import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { useCart } from "@/lib/cart";
 import Reveal from "@/components/Reveal";
+import { cldUrl } from "@/lib/cloudinaryUrl";
 
 interface AppliedOffer {
   applied: true;
@@ -75,8 +76,10 @@ export default function CartPage() {
             {items.map((item) => (
               <div key={item.id} className="flex items-center gap-4 p-4">
                 <img
-                  src={item.image}
+                  src={cldUrl(item.image, 160)}
                   alt={item.name[locale]}
+                  loading="lazy"
+                  decoding="async"
                   className="w-20 h-20 rounded-xl object-cover flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">

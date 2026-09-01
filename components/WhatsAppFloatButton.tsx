@@ -45,7 +45,7 @@ export default function WhatsAppFloatButton({ phoneNumber }: WhatsAppFloatButton
       target="_blank"
       rel="noopener noreferrer"
       aria-label="WhatsApp"
-      className="fixed bottom-20 sm:bottom-6 end-6 z-50 w-14 h-14 rounded-full bg-[#25D366] shadow-lg flex items-center justify-center"
+      className="fixed bottom-40 sm:bottom-6 end-6 z-30 w-14 h-14 rounded-full bg-[#25D366] shadow-lg flex items-center justify-center"
       animate={{ scale: [1, 1.06, 1] }}
       transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
       whileHover={{ scale: 1.15 }}

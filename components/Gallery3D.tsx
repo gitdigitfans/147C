@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { onImgError } from "@/lib/imageFallback";
+import { cldUrl } from "@/lib/cloudinaryUrl";
 
 export interface GallerySlideItem {
   id: string;
@@ -80,8 +81,10 @@ export default function Gallery3D({ slides }: Gallery3DProps) {
   const CardImage = ({ slide }: { slide: GallerySlideItem }) => {
     const img = (
       <img
-        src={slide.image}
+        src={cldUrl(slide.image, 800)}
         alt={slide.title[locale]}
+        loading="lazy"
+        decoding="async"
         className="w-full h-full object-cover rounded-t-[2.5rem]"
       />
     );
@@ -114,7 +117,7 @@ export default function Gallery3D({ slides }: Gallery3DProps) {
                 boxShadow: "0 8px 20px -8px rgba(0,0,0,0.25)",
               }}
             >
-              <img src={slides[prevIndex].image} alt="" onError={onImgError} className="w-full h-full object-cover rounded-t-[2.5rem]" />
+              <img src={cldUrl(slides[prevIndex].image, 500)} alt="" onError={onImgError} loading="lazy" decoding="async" className="w-full h-full object-cover rounded-t-[2.5rem]" />
             </motion.div>
           </div>
         )}
@@ -134,7 +137,7 @@ export default function Gallery3D({ slides }: Gallery3DProps) {
                 boxShadow: "0 8px 20px -8px rgba(0,0,0,0.25)",
               }}
             >
-              <img src={slides[nextIndex].image} alt="" onError={onImgError} className="w-full h-full object-cover rounded-t-[2.5rem]" />
+              <img src={cldUrl(slides[nextIndex].image, 500)} alt="" onError={onImgError} loading="lazy" decoding="async" className="w-full h-full object-cover rounded-t-[2.5rem]" />
             </motion.div>
           </div>
         )}
