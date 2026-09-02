@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { d1Query } from "@/lib/d1";
+import { unstable_cache } from "next/cache";
+import { getSiteSettings } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
 import { products as mockProducts, categories as mockCategories, furnitureImg } from "@/lib/data";
 import ProductDetailClient, { type ProductVM, type RelatedVM, type ReviewVM } from "./ProductDetailClient";
@@ -19,15 +21,24 @@ function parseMockSlug(slug: string): { category: string; id: number } | null {
   return { category, id };
 }
 
-async function fetchDbProduct(slug: string) {
-  const rows = await d1Query<any>(
-    `SELECT p.*, c.slug as category_slug, c.name_ar as category_name_ar, c.name_en as category_name_en
-     FROM products p LEFT JOIN categories c ON c.id = p.category_id
-     WHERE p.slug = ? AND p.is_active = 1 LIMIT 1`,
-    [slug]
-  );
-  return rows[0] || null;
-}
+// Wrapped in unstable_cache: force-dynamic (below) only opts this route out
+// of Next's static rendering, it does NOT make the underlying D1 binding
+// calls cacheable on their own - unstable_cache is what actually stops
+// every single product-page view from re-hitting D1 (product pages are
+// typically the highest-traffic page type on an e-commerce site).
+const fetchDbProduct = unstable_cache(
+  async (slug: string) => {
+    const rows = await d1Query<any>(
+      `SELECT p.*, c.slug as category_slug, c.name_ar as category_name_ar, c.name_en as category_name_en
+       FROM products p LEFT JOIN categories c ON c.id = p.category_id
+       WHERE p.slug = ? AND p.is_active = 1 LIMIT 1`,
+      [slug]
+    );
+    return rows[0] || null;
+  },
+  ["product-by-slug"],
+  { revalidate: 60, tags: ["products"] }
+);
 
 const RELATED_RAIL_LIMIT = 5;
 
@@ -37,7 +48,8 @@ const RELATED_RAIL_LIMIT = 5;
 // the automatic same-category fallback; an admin's explicit manual picks for
 // a given relation_type are always honored as-is, even if they overlap with
 // another section's picks, since that's a deliberate choice.
-async function fetchRelatedRail(productId: string, categoryId: string, relationType: string, excludeIds: string[] = []): Promise<any[]> {
+const fetchRelatedRail = unstable_cache(
+  async (productId: string, categoryId: string, relationType: string, excludeIds: string[] = []): Promise<any[]> => {
   try {
     const explicit = await d1Query<any>(
       `SELECT p.*, (SELECT url FROM product_images WHERE product_id=p.id ORDER BY is_primary DESC, sort_order LIMIT 1) as image
@@ -75,7 +87,10 @@ async function fetchRelatedRail(productId: string, categoryId: string, relationT
   } catch {
     return [];
   }
-}
+  },
+  ["related-rail"],
+  { revalidate: 60, tags: ["products"] }
+);
 
 function normalizeRelatedRow(row: any): RelatedVM {
   return {
@@ -128,18 +143,36 @@ async function isWishlisted(productId: string): Promise<boolean> {
   }
 }
 
-async function fetchWhatsappNumber(): Promise<string> {
-  try {
-    const rows = await d1Query<{ value: string }>("SELECT value FROM site_settings WHERE key = 'whatsapp' LIMIT 1", []);
-    return rows[0]?.value || "+201000000000";
-  } catch {
-    return "+201000000000";
-  }
-}
+// Combines the 5 D1-only reads that previously ran as separate round trips
+// in the Promise.all below into one cached helper per product id - reviews
+// and wishlist status stay out of this (Supabase, and wishlist is
+// per-user so must never be cached).
+const fetchProductChildRows = unstable_cache(
+  async (productId: string, isVariable: boolean) => {
+    const [images, specs, faqs, attributeRows, attributeValueRows] = await Promise.all([
+      d1Query<any>("SELECT * FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, sort_order", [productId]).catch(() => []),
+      d1Query<any>("SELECT * FROM product_specs WHERE product_id = ? ORDER BY sort_order", [productId]).catch(() => []),
+      d1Query<any>("SELECT * FROM product_faqs WHERE product_id = ? ORDER BY sort_order", [productId]).catch(() => []),
+      isVariable
+        ? d1Query<any>("SELECT * FROM product_attributes WHERE product_id = ? ORDER BY sort_order", [productId]).catch(() => [])
+        : Promise.resolve([]),
+      isVariable
+        ? d1Query<any>(
+            `SELECT v.* FROM product_attribute_values v JOIN product_attributes a ON a.id = v.attribute_id WHERE a.product_id = ? ORDER BY v.sort_order`,
+            [productId]
+          ).catch(() => [])
+        : Promise.resolve([]),
+    ]);
+    return { images, specs, faqs, attributeRows, attributeValueRows };
+  },
+  ["product-child-rows"],
+  { revalidate: 60, tags: ["products"] }
+);
 
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
-  const whatsappNumber = await fetchWhatsappNumber();
+  const settingsMap = await getSiteSettings();
+  const whatsappNumber = settingsMap.whatsapp || "+201000000000";
 
   let dbProduct: any = null;
   try {
@@ -162,21 +195,10 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       [...similar.map((p: any) => p.id), ...related.map((p: any) => p.id)]
     );
 
-    const [images, specs, faqs, reviews, wishlisted, attributeRows, attributeValueRows] = await Promise.all([
-      d1Query<any>("SELECT * FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, sort_order", [dbProduct.id]).catch(() => []),
-      d1Query<any>("SELECT * FROM product_specs WHERE product_id = ? ORDER BY sort_order", [dbProduct.id]).catch(() => []),
-      d1Query<any>("SELECT * FROM product_faqs WHERE product_id = ? ORDER BY sort_order", [dbProduct.id]).catch(() => []),
+    const [{ images, specs, faqs, attributeRows, attributeValueRows }, reviews, wishlisted] = await Promise.all([
+      fetchProductChildRows(dbProduct.id, dbProduct.product_type === "variable"),
       fetchReviews(dbProduct.id),
       isWishlisted(dbProduct.id),
-      dbProduct.product_type === "variable"
-        ? d1Query<any>("SELECT * FROM product_attributes WHERE product_id = ? ORDER BY sort_order", [dbProduct.id]).catch(() => [])
-        : Promise.resolve([]),
-      dbProduct.product_type === "variable"
-        ? d1Query<any>(
-            `SELECT v.* FROM product_attribute_values v JOIN product_attributes a ON a.id = v.attribute_id WHERE a.product_id = ? ORDER BY v.sort_order`,
-            [dbProduct.id]
-          ).catch(() => [])
-        : Promise.resolve([]),
     ]);
 
     const attributes = attributeRows.map((a: any) => ({

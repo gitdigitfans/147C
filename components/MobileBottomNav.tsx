@@ -8,16 +8,29 @@ import { Home, LayoutGrid, Search, ShoppingBag, User } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import { useCart } from "@/lib/cart";
 import { createClient } from "@/lib/supabase/client";
+import { cldUrl } from "@/lib/cloudinaryUrl";
+import { onImgError } from "@/lib/imageFallback";
+
+interface SearchResult {
+  id: string | number;
+  slug: string;
+  name: { ar: string; en: string };
+  price: number;
+  image?: string;
+}
 
 export default function MobileBottomNav() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { count } = useCart();
   const pathname = usePathname();
   const router = useRouter();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -37,7 +50,40 @@ export default function MobileBottomNav() {
 
   useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus();
+    if (!searchOpen) {
+      setSearchQuery("");
+      setResults([]);
+    }
   }, [searchOpen]);
+
+  // Debounced instant-results lookup as the user types, instead of only
+  // resolving on submit - hits the small /api/products/search endpoint
+  // (indexed name/sku LIKE query, LIMIT 6) rather than the full /shop
+  // catalog fetch, so results come back fast.
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!q) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/products/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        setResults(data.products || []);
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 250);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchQuery]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,7 +122,8 @@ export default function MobileBottomNav() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 60, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-x-0 bottom-16 z-40 sm:hidden px-3"
+            className="fixed inset-x-0 z-40 sm:hidden px-3"
+            style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
           >
             <form
               onSubmit={handleSearchSubmit}
@@ -98,6 +145,36 @@ export default function MobileBottomNav() {
                 {t("bottomnav_search")}
               </button>
             </form>
+
+            {searchQuery.trim() && (
+              <div className="mt-2 bg-white rounded-2xl border border-gold/20 shadow-lg overflow-hidden max-h-72 overflow-y-auto">
+                {searching ? (
+                  <div className="p-4 text-center text-xs text-charcoal/40">...</div>
+                ) : results.length > 0 ? (
+                  results.map((p) => (
+                    <Link
+                      key={p.id}
+                      href={`/shop/${p.slug}`}
+                      onClick={() => setSearchOpen(false)}
+                      className="flex items-center gap-3 p-2.5 border-b border-gold/5 last:border-0 hover:bg-ivory/60"
+                    >
+                      <img
+                        src={cldUrl(p.image, 100)}
+                        alt=""
+                        onError={onImgError}
+                        className="w-11 h-11 rounded-lg object-cover shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-charcoal truncate">{p.name[locale]}</p>
+                        <p className="text-xs text-goldDark font-bold">{p.price?.toLocaleString()} {t("currency")}</p>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-xs text-charcoal/40">{t("search_no_results")}</div>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

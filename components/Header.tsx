@@ -18,6 +18,8 @@ const navKeys: { key: string; href: string }[] = [
   { key: "nav_gallery", href: "/gallery" },
   { key: "nav_offers", href: "/offers" },
   { key: "nav_services", href: "/services" },
+  { key: "nav_articles", href: "/articles" },
+  { key: "nav_consultation", href: "/consultation" },
   { key: "nav_contact", href: "/contact" },
 ];
 
@@ -127,8 +129,8 @@ export default function Header() {
   return (
     <>
     <header className="sticky top-0 z-50 bg-ivory/90 backdrop-blur-md border-b border-gold/30 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-20">
-        <Link href="/" className="flex items-center gap-3 group">
+      <div className="max-w-[90rem] mx-auto px-4 flex items-center justify-between h-20 gap-3">
+        <Link href="/" className="flex items-center gap-3 group shrink-0">
           <span className="relative w-14 h-14 rounded-full shadow-lg group-hover:scale-105 transition-transform overflow-hidden bg-bronze-gradient">
             <img
               src="/logo.png"
@@ -136,24 +138,24 @@ export default function Header() {
               className="w-full h-full object-cover"
             />
           </span>
-          <span className="font-playfair font-cairo text-xl font-bold text-charcoal hidden sm:inline">
+          <span className="font-playfair font-cairo text-xl font-bold text-charcoal hidden xl:inline whitespace-nowrap">
             {t("brand")}
           </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-3 xl:gap-6 2xl:gap-8 min-w-0">
           {navKeys.map((n) => (
             <Link
               key={n.key}
               href={n.href}
-              className="text-charcoal font-cairo font-medium hover:text-goldDark transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-gold after:transition-all"
+              className="text-charcoal font-cairo font-medium text-sm xl:text-base hover:text-goldDark transition-colors relative whitespace-nowrap after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-gold after:transition-all"
             >
               {t(n.key)}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 xl:gap-4 shrink-0">
           <div className="relative hidden sm:flex items-center">
             <AnimatePresence>
               {searchOpen && (

@@ -233,7 +233,7 @@ function ShopContent({ categories, products }: { categories: ShopCategoryVM[]; p
             </div>
             <h2 className="font-bold text-charcoal mb-4 flex items-center gap-2 text-base">
               <SlidersHorizontal size={18} className="text-goldDark" />
-              {t("filter_all") === "الكل" ? "التصنيفات" : "Categories"}
+              {t("filter_all") === "الكل" ? "الأقسام" : "Categories"}
             </h2>
             <CategoryFilterList
               categories={categories}

@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { d1Query, d1Execute } from "@/lib/d1";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export interface CategoryFormData {
   id?: string;
@@ -28,6 +28,7 @@ function revalidateAll() {
   revalidatePath("/");
   revalidatePath("/shop");
   revalidatePath("/categories");
+  revalidateTag("categories");
 }
 
 export async function saveCategory(data: CategoryFormData) {

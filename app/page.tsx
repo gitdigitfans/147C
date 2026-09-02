@@ -1,4 +1,6 @@
 ﻿import { d1Query } from "@/lib/d1";
+import { unstable_cache } from "next/cache";
+import { getActiveCategories, getCategoryCounts } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
 import { products as mockProducts, heroSlides as mockHeroSlides, testimonials as mockTestimonials, categories as mockCategories, furnitureImg } from "@/lib/data";
 import HomeClient, { type NormalizedProduct, type NormalizedHero, type NormalizedTestimonial, type NormalizedSecondaryBanner } from "./HomeClient";
@@ -136,40 +138,56 @@ async function fetchTestimonialProductNames(rows: any[]) {
 const PRODUCT_SELECT =
   "SELECT p.*, (SELECT url FROM product_images WHERE product_id=p.id ORDER BY is_primary DESC, sort_order LIMIT 1) as image, (SELECT url FROM product_images WHERE product_id=p.id ORDER BY is_primary DESC, sort_order LIMIT 1 OFFSET 1) as hover_image FROM products p WHERE p.is_active=1";
 
-async function fetchProducts(extraWhere: string, params: any[] = [], limit = 8) {
-  try {
-    return await d1Query<any>(`${PRODUCT_SELECT} ${extraWhere} ORDER BY p.created_at DESC LIMIT ${limit}`, params);
-  } catch {
-    return [];
-  }
-}
+// Wrapped in unstable_cache: the D1 Worker binding bypasses Next's fetch
+// cache entirely, so without this every homepage view re-ran this query
+// (called 3x below) plus every other D1 read on this page, on every visit -
+// see lib/catalog.ts for the same rationale applied to the shared helpers.
+const fetchProducts = unstable_cache(
+  async (extraWhere: string, params: any[] = [], limit = 8) => {
+    try {
+      return await d1Query<any>(`${PRODUCT_SELECT} ${extraWhere} ORDER BY p.created_at DESC LIMIT ${limit}`, params);
+    } catch {
+      return [];
+    }
+  },
+  ["home-products"],
+  { revalidate: 60, tags: ["products"] }
+);
 
-async function fetchBanners() {
-  try {
-    return await d1Query<any>("SELECT * FROM banners WHERE position='home_hero' AND is_active=1 ORDER BY sort_order", []);
-  } catch {
-    return [];
-  }
-}
+const fetchBanners = unstable_cache(
+  async () => {
+    try {
+      return await d1Query<any>("SELECT * FROM banners WHERE position='home_hero' AND is_active=1 ORDER BY sort_order", []);
+    } catch {
+      return [];
+    }
+  },
+  ["home-hero-banners"],
+  { revalidate: 60, tags: ["banners"] }
+);
 
-async function fetchSecondaryBanner(): Promise<NormalizedSecondaryBanner | undefined> {
-  try {
-    const rows = await d1Query<any>(
-      "SELECT * FROM banners WHERE position='home_secondary' AND is_active=1 ORDER BY sort_order LIMIT 1",
-      []
-    );
-    const row = rows[0];
-    if (!row) return undefined;
-    return {
-      image: row.image_url,
-      title: { ar: row.title_ar || "", en: row.title_en || "" },
-      subtitle: { ar: row.subtitle_ar || "", en: row.subtitle_en || "" },
-      linkUrl: row.link_url || "/shop",
-    };
-  } catch {
-    return undefined;
-  }
-}
+const fetchSecondaryBanner = unstable_cache(
+  async (): Promise<NormalizedSecondaryBanner | undefined> => {
+    try {
+      const rows = await d1Query<any>(
+        "SELECT * FROM banners WHERE position='home_secondary' AND is_active=1 ORDER BY sort_order LIMIT 1",
+        []
+      );
+      const row = rows[0];
+      if (!row) return undefined;
+      return {
+        image: row.image_url,
+        title: { ar: row.title_ar || "", en: row.title_en || "" },
+        subtitle: { ar: row.subtitle_ar || "", en: row.subtitle_en || "" },
+        linkUrl: row.link_url || "/shop",
+      };
+    } catch {
+      return undefined;
+    }
+  },
+  ["home-secondary-banner"],
+  { revalidate: 60, tags: ["banners"] }
+);
 
 function normalizeDbGallerySlide(row: any): GallerySlideItem {
   return {
@@ -181,37 +199,29 @@ function normalizeDbGallerySlide(row: any): GallerySlideItem {
   };
 }
 
-async function fetchGallerySlides() {
-  try {
-    return await d1Query<any>("SELECT * FROM gallery_slides WHERE is_active=1 ORDER BY sort_order", []);
-  } catch {
-    return [];
-  }
-}
+const fetchGallerySlides = unstable_cache(
+  async () => {
+    try {
+      return await d1Query<any>("SELECT * FROM gallery_slides WHERE is_active=1 ORDER BY sort_order", []);
+    } catch {
+      return [];
+    }
+  },
+  ["home-gallery-slides"],
+  { revalidate: 60, tags: ["gallery"] }
+);
 
-async function fetchCategories() {
-  try {
-    return await d1Query<any>("SELECT * FROM categories WHERE is_active=1 ORDER BY sort_order", []);
-  } catch {
-    return [];
-  }
-}
-
-async function fetchCategoryCounts() {
-  try {
-    return await d1Query<any>("SELECT category_id, COUNT(*) as count FROM products WHERE is_active=1 GROUP BY category_id", []);
-  } catch {
-    return [];
-  }
-}
-
-async function fetchAboutSettings() {
-  try {
-    return await d1Query<any>("SELECT key, value FROM site_settings WHERE group_name = 'about'", []);
-  } catch {
-    return [];
-  }
-}
+const fetchAboutSettings = unstable_cache(
+  async () => {
+    try {
+      return await d1Query<any>("SELECT key, value FROM site_settings WHERE group_name = 'about'", []);
+    } catch {
+      return [];
+    }
+  },
+  ["home-about-settings"],
+  { revalidate: 60, tags: ["site-settings"] }
+);
 
 async function fetchTestimonials() {
   try {
@@ -238,8 +248,8 @@ export default async function HomePage() {
     fetchAboutSettings(),
     fetchSecondaryBanner(),
     fetchGallerySlides(),
-    fetchCategories(),
-    fetchCategoryCounts(),
+    getActiveCategories(),
+    getCategoryCounts(),
   ]);
 
   const colorOptionsByProduct = await fetchColorOptions([...latestRows, ...bestRows, ...offerRows]);

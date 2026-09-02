@@ -6,67 +6,63 @@ import { CartProvider } from "@/lib/cart";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import WhatsAppFloatButton from "@/components/WhatsAppFloatButton";
+import ConsultationFloatButton from "@/components/ConsultationFloatButton";
 import OfferTopBar from "@/components/OfferTopBar";
 import OfferPopup from "@/components/OfferPopup";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ImageProtection from "@/components/ImageProtection";
 import { d1Query } from "@/lib/d1";
+import { unstable_cache } from "next/cache";
+import { getSiteSettings, getActiveCategories } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "الفرعون للأثاث | Pharaoh Furniture",
   description: "شركة مصرية متخصصة في تصميم وتصنيع الأثاث المنزلي والفندقي الفاخر",
 };
 
-async function getSiteSettings() {
-  try {
-    const rows = await d1Query<{ key: string; value: string }>("SELECT key, value FROM site_settings", []);
-    const map: Record<string, string> = {};
-    for (const row of rows) map[row.key] = row.value;
-    return map;
-  } catch {
-    return {} as Record<string, string>;
-  }
-}
+// getSiteSettings/getActiveCategories are shared with app/page.tsx and
+// app/shop/page.tsx, so they live in lib/catalog.ts. The two offer lookups
+// below are only used here, so they stay local - same unstable_cache
+// rationale (D1 binding calls bypass Next's fetch cache entirely).
+const getTopbarOffer = unstable_cache(
+  async () => {
+    try {
+      const rows = await d1Query<any>(
+        `SELECT o.*, c.slug as category_slug FROM offers o LEFT JOIN categories c ON c.id = o.category_id
+         WHERE o.is_active = 1 AND o.show_in_topbar = 1
+         AND (o.starts_at IS NULL OR o.starts_at <= date('now'))
+         AND (o.ends_at IS NULL OR o.ends_at >= date('now'))
+         ORDER BY o.created_at DESC LIMIT 1`,
+        []
+      );
+      return rows[0] || null;
+    } catch {
+      return null;
+    }
+  },
+  ["topbar-offer"],
+  { revalidate: 60, tags: ["offers"] }
+);
 
-async function getActiveCategories() {
-  try {
-    return await d1Query<any>("SELECT * FROM categories WHERE is_active=1 ORDER BY sort_order", []);
-  } catch {
-    return [];
-  }
-}
-
-async function getTopbarOffer() {
-  try {
-    const rows = await d1Query<any>(
-      `SELECT o.*, c.slug as category_slug FROM offers o LEFT JOIN categories c ON c.id = o.category_id
-       WHERE o.is_active = 1 AND o.show_in_topbar = 1
-       AND (o.starts_at IS NULL OR o.starts_at <= date('now'))
-       AND (o.ends_at IS NULL OR o.ends_at >= date('now'))
-       ORDER BY o.created_at DESC LIMIT 1`,
-      []
-    );
-    return rows[0] || null;
-  } catch {
-    return null;
-  }
-}
-
-async function getPopupOffer() {
-  try {
-    const rows = await d1Query<any>(
-      `SELECT o.*, c.slug as category_slug FROM offers o LEFT JOIN categories c ON c.id = o.category_id
-       WHERE o.is_active = 1 AND o.show_as_popup = 1
-       AND (o.starts_at IS NULL OR o.starts_at <= date('now'))
-       AND (o.ends_at IS NULL OR o.ends_at >= date('now'))
-       ORDER BY o.created_at DESC LIMIT 1`,
-      []
-    );
-    return rows[0] || null;
-  } catch {
-    return null;
-  }
-}
+const getPopupOffer = unstable_cache(
+  async () => {
+    try {
+      const rows = await d1Query<any>(
+        `SELECT o.*, c.slug as category_slug FROM offers o LEFT JOIN categories c ON c.id = o.category_id
+         WHERE o.is_active = 1 AND o.show_as_popup = 1
+         AND (o.starts_at IS NULL OR o.starts_at <= date('now'))
+         AND (o.ends_at IS NULL OR o.ends_at >= date('now'))
+         ORDER BY o.created_at DESC LIMIT 1`,
+        []
+      );
+      return rows[0] || null;
+    } catch {
+      return null;
+    }
+  },
+  ["popup-offer"],
+  { revalidate: 60, tags: ["offers"] }
+);
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [settingsMap, categories, topbarOffer, popupOffer] = await Promise.all([
@@ -182,6 +178,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <main className="min-h-screen pb-20 sm:pb-0">{children}</main>
             <Footer settings={settings} categories={categories} />
             <WhatsAppFloatButton phoneNumber={settings.whatsapp} />
+            <ConsultationFloatButton />
             <OfferPopup offer={popupOffer} />
             <MobileBottomNav />
             <ImageProtection />

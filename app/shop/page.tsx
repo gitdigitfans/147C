@@ -1,6 +1,28 @@
 ﻿import { d1Query } from "@/lib/d1";
+import { unstable_cache } from "next/cache";
+import { getActiveCategories } from "@/lib/catalog";
 import { categories as mockCategories, products as mockProducts } from "@/lib/data";
 import ShopClient, { ShopCategoryVM, ShopProductVM } from "./ShopClient";
+
+// Wrapped in unstable_cache: this query has no LIMIT by design (ShopClient
+// filters/searches/sorts the full list entirely client-side), so without
+// caching it re-scanned every active product (~441 rows, x2 correlated
+// image subqueries each) on every single visit to /shop - the single
+// biggest contributor to exhausting D1's free-tier rows-read quota. Now it
+// runs at most once per 60s regardless of visitor count.
+const fetchShopProducts = unstable_cache(
+  async () => {
+    try {
+      return await d1Query<any>(
+        "SELECT p.*, (SELECT url FROM product_images WHERE product_id=p.id ORDER BY is_primary DESC, sort_order LIMIT 1) as image, (SELECT url FROM product_images WHERE product_id=p.id ORDER BY is_primary DESC, sort_order LIMIT 1 OFFSET 1) as hover_image FROM products p WHERE p.is_active=1"
+      );
+    } catch {
+      return [];
+    }
+  },
+  ["shop-products-active"],
+  { revalidate: 60, tags: ["products"] }
+);
 
 // For variable products, fetch their first "color"-like attribute (matched by
 // name containing لون / "color") and its values, to power the small
@@ -39,21 +61,7 @@ async function fetchColorOptions(rows: any[]) {
 }
 
 export default async function ShopPage() {
-  let realCategories: any[] = [];
-  try {
-    realCategories = await d1Query<any>("SELECT * FROM categories WHERE is_active=1 ORDER BY sort_order");
-  } catch {
-    realCategories = [];
-  }
-
-  let realProducts: any[] = [];
-  try {
-    realProducts = await d1Query<any>(
-      "SELECT p.*, (SELECT url FROM product_images WHERE product_id=p.id ORDER BY is_primary DESC, sort_order LIMIT 1) as image, (SELECT url FROM product_images WHERE product_id=p.id ORDER BY is_primary DESC, sort_order LIMIT 1 OFFSET 1) as hover_image FROM products p WHERE p.is_active=1"
-    );
-  } catch {
-    realProducts = [];
-  }
+  const [realCategories, realProducts] = await Promise.all([getActiveCategories(), fetchShopProducts()]);
 
   const categorySlugById = new Map(realCategories.map((c) => [c.id, c.slug]));
 

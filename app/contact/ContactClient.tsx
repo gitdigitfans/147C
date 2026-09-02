@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Facebook, Instagram, Youtube, Music2, Image as ImageIcon, MapPin, Phone, Mail, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Facebook, Instagram, Youtube, Music2, Image as ImageIcon, MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useLocale } from "@/lib/i18n";
 import Reveal from "@/components/Reveal";
-import { submitContactForm } from "./actions";
 
 const socials = [
   { icon: Facebook, href: "https://www.facebook.com/share/1CwRaimBaN/?mibextid=wwXIfr", label: "Facebook" },
@@ -39,7 +36,6 @@ export interface ContactFieldVM {
 
 export default function ContactClient({
   branches,
-  fields,
   phone,
   email,
 }: {
@@ -49,26 +45,9 @@ export default function ContactClient({
   email: string;
 }) {
   const { t, locale } = useLocale();
-  const [form, setForm] = useState<Record<string, string>>({});
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      await submitContactForm(form);
-      setStatus("success");
-    } catch {
-      setStatus("error");
-    }
-    setForm({});
-    setSubmitting(false);
-    setTimeout(() => setStatus("idle"), 4000);
-  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-16">
+    <div className="max-w-4xl mx-auto px-4 py-16">
       <Reveal>
         <h1 className="font-playfair font-cairo text-4xl font-bold text-center mb-4 text-gold-gradient">
           {t("contact_page_title")}
@@ -76,74 +55,7 @@ export default function ContactClient({
         <p className="text-center text-charcoal/60 mb-12 max-w-xl mx-auto">{t("contact_page_sub")}</p>
       </Reveal>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        <Reveal y={30}>
-          <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-md space-y-5">
-            {fields.map((field) => {
-              const labelText = locale === "ar" ? field.label_ar : field.label_en || field.label_ar;
-              const value = form[field.field_key] || "";
-              const commonProps = {
-                required: !!field.is_required,
-                value,
-                onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                  setForm({ ...form, [field.field_key]: e.target.value }),
-              };
-
-              return (
-                <div key={field.id}>
-                  <label className="block text-sm font-bold mb-2 text-charcoal/70">{labelText}</label>
-                  {field.field_type === "textarea" ? (
-                    <textarea
-                      {...commonProps}
-                      rows={4}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gold/30 outline-none focus:ring-2 focus:ring-gold resize-none"
-                    />
-                  ) : (
-                    <input
-                      {...commonProps}
-                      type={field.field_type === "email" ? "email" : field.field_type === "phone" ? "tel" : "text"}
-                      className="w-full px-4 py-2.5 rounded-lg border border-gold/30 outline-none focus:ring-2 focus:ring-gold"
-                    />
-                  )}
-                </div>
-              );
-            })}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-3 rounded-lg bg-gold-gradient text-charcoal font-bold hover:opacity-90 transition-opacity disabled:opacity-60"
-            >
-              {t("form_submit")}
-            </button>
-
-            <AnimatePresence>
-              {status === "success" && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="flex items-center gap-2 bg-green-50 text-green-700 rounded-lg p-4 text-sm font-bold"
-                >
-                  <CheckCircle2 size={18} />
-                  {t("form_success")}
-                </motion.div>
-              )}
-              {status === "error" && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="flex items-center gap-2 bg-red-50 text-red-700 rounded-lg p-4 text-sm font-bold"
-                >
-                  <XCircle size={18} />
-                  {t("form_error")}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </form>
-        </Reveal>
-
+      <div className="grid grid-cols-1 gap-10">
         <Reveal y={30} delay={0.15}>
           <div className="space-y-8">
             <div className="bg-white rounded-2xl p-8 shadow-md">

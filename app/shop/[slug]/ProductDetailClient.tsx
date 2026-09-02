@@ -122,12 +122,25 @@ function RelatedRail({ title, items, locale }: { title: string; items: RelatedVM
     if (paused || stepCount <= 1) return;
     const interval = setInterval(() => {
       setIndex((i) => (i + 1) % stepCount);
-    }, 4000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [paused, stepCount]);
 
   const goPrev = () => setIndex((i) => (i - 1 + stepCount) % stepCount);
   const goNext = () => setIndex((i) => (i + 1) % stepCount);
+
+  // RTL flips which physical direction advances the rail (see `dir` below),
+  // so a right-to-left finger swipe (negative offset.x) must map to
+  // goPrev/goNext accordingly - mirrors the isRtl-aware `dir` used for the
+  // translateX transform.
+  function handleDragEnd(_e: unknown, info: { offset: { x: number } }) {
+    setPaused(false);
+    if (info.offset.x < -60) {
+      isRtl ? goPrev() : goNext();
+    } else if (info.offset.x > 60) {
+      isRtl ? goNext() : goPrev();
+    }
+  }
 
   if (items.length === 0) return null;
 
@@ -149,13 +162,18 @@ function RelatedRail({ title, items, locale }: { title: string; items: RelatedVM
       <h2 className="font-playfair font-cairo text-2xl font-bold mb-6 text-gold-gradient">{title}</h2>
       <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
         <div className="overflow-hidden -mx-4 px-4">
-          <div
-            className="flex gap-4 transition-transform duration-700 ease-out"
+          <motion.div
+            className="flex gap-4 transition-transform duration-700 ease-out touch-pan-y"
             style={
               hasEnoughToSlide
                 ? { transform: `translateX(${dir * index * itemWidthPct}%)` }
                 : undefined
             }
+            drag={hasEnoughToSlide && stepCount > 1 ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.15}
+            onDragStart={() => setPaused(true)}
+            onDragEnd={handleDragEnd}
           >
             {looped.map((p, i) => (
               <Link
@@ -169,7 +187,7 @@ function RelatedRail({ title, items, locale }: { title: string; items: RelatedVM
                 }
               >
                 <div className="h-36 overflow-hidden">
-                  <img src={p.image} alt={p.name[locale]} onError={onImgError} className="w-full h-full object-cover" />
+                  <img src={cldUrl(p.image, 300)} alt={p.name[locale]} onError={onImgError} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 </div>
                 <div className="p-3">
                   <p className="font-cairo font-bold text-sm text-charcoal truncate">{p.name[locale]}</p>
@@ -179,7 +197,7 @@ function RelatedRail({ title, items, locale }: { title: string; items: RelatedVM
                 </div>
               </Link>
             ))}
-              </div>
+          </motion.div>
         </div>
 
         {hasEnoughToSlide && stepCount > 1 && (
@@ -188,7 +206,7 @@ function RelatedRail({ title, items, locale }: { title: string; items: RelatedVM
               type="button"
               onClick={goPrev}
               aria-label="previous"
-              className="flex absolute start-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 shadow-sm text-charcoal items-center justify-center hover:bg-white transition-colors -translate-x-2 sm:-translate-x-4 rtl:translate-x-2 sm:rtl:translate-x-4"
+              className="hidden sm:flex absolute start-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 shadow-sm text-charcoal items-center justify-center hover:bg-white transition-colors -translate-x-2 sm:-translate-x-4 rtl:translate-x-2 sm:rtl:translate-x-4"
             >
               <ChevronRight size={18} />
             </button>
@@ -196,7 +214,7 @@ function RelatedRail({ title, items, locale }: { title: string; items: RelatedVM
               type="button"
               onClick={goNext}
               aria-label="next"
-              className="flex absolute end-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 shadow-sm text-charcoal items-center justify-center hover:bg-white transition-colors translate-x-2 sm:translate-x-4 rtl:-translate-x-2 sm:rtl:-translate-x-4"
+              className="hidden sm:flex absolute end-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 shadow-sm text-charcoal items-center justify-center hover:bg-white transition-colors translate-x-2 sm:translate-x-4 rtl:-translate-x-2 sm:rtl:-translate-x-4"
             >
               <ChevronLeft size={18} />
             </button>
@@ -1404,6 +1422,32 @@ export default function ProductDetailClient({
                 }}
               />
             </AnimatePresence>
+            {displayImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goPrev();
+                  }}
+                  aria-label="previous image"
+                  className="hidden sm:flex absolute start-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white/20 text-white items-center justify-center hover:bg-white/30 transition-colors"
+                >
+                  <ChevronRight size={24} />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goNext();
+                  }}
+                  aria-label="next image"
+                  className="hidden sm:flex absolute end-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white/20 text-white items-center justify-center hover:bg-white/30 transition-colors"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

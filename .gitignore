@@ -8,6 +8,7 @@ build
 .DS_Store
 *.log
 .wrangler
+tsconfig.tsbuildinfo
 /Photo prodect
 /phote
 /New folder

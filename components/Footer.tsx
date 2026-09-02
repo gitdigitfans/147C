@@ -35,6 +35,8 @@ const navKeys: { key: string; href: string }[] = [
   { key: "nav_categories", href: "/categories" },
   { key: "nav_about", href: "/about" },
   { key: "nav_services", href: "/services" },
+  { key: "nav_articles", href: "/articles" },
+  { key: "nav_consultation", href: "/consultation" },
   { key: "nav_contact", href: "/contact" },
 ];
 

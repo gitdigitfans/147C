@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { d1Query, d1Execute } from "@/lib/d1";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export interface OfferFormData {
   id?: string;
@@ -32,6 +32,7 @@ function revalidateAll() {
   revalidatePath("/shop");
   revalidatePath("/offers");
   revalidatePath("/checkout");
+  revalidateTag("offers");
 }
 
 export async function saveOffer(data: OfferFormData) {

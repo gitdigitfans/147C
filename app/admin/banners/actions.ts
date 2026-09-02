@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { d1Query, d1Execute } from "@/lib/d1";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export interface BannerFormData {
   id?: string;
@@ -25,6 +25,7 @@ export interface BannerFormData {
 function revalidateAll() {
   revalidatePath("/admin/banners");
   revalidatePath("/");
+  revalidateTag("banners");
 }
 
 export async function saveBanner(data: BannerFormData) {

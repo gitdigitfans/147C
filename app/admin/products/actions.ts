@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { d1Query, d1Execute, d1Batch, D1BatchStatement } from "@/lib/d1";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export interface ProductImageInput {
   url: string;
@@ -83,6 +83,12 @@ function revalidateAll() {
   revalidatePath("/");
   revalidatePath("/shop");
   revalidatePath("/categories");
+  // revalidatePath alone does not bust unstable_cache entries - these tags
+  // match the ones used in lib/catalog.ts, app/page.tsx, app/shop/page.tsx,
+  // and app/shop/[slug]/page.tsx so a product save/delete is reflected on
+  // the next request instead of waiting out the 60s cache TTL.
+  revalidateTag("products");
+  revalidateTag("categories");
 }
 
 export async function getCategoriesForSelect() {

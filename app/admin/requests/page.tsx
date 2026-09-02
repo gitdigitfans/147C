@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ClipboardList } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { d1Query } from "@/lib/d1";
-import RequestActionButtons from "./RequestActionButtons";
+import RequestRow from "./RequestRow";
 
 export const dynamic = "force-dynamic";
 
@@ -81,36 +81,22 @@ export default async function AdminRequestsPage({
           const typeLabel = TYPE_LABELS[r.type] || r.type;
 
           return (
-            <div key={r.id} className="bg-white rounded-xl border border-gold/10 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
-                <div>
-                  <span className="inline-block px-2 py-1 rounded-full text-xs font-bold bg-gold/10 text-goldDark mb-1">
-                    {typeLabel}
-                  </span>
-                  {product ? (
-                    <Link href={`/shop/${product.slug}`} className="block font-bold text-goldDark hover:underline text-sm" target="_blank">
-                      {product.name_ar}
-                    </Link>
-                  ) : r.product_id ? (
-                    <span className="block text-sm text-charcoal/40">منتج غير معروف ({r.product_id})</span>
-                  ) : null}
-                  <div className="mt-1">
-                    <span className="font-cairo font-bold text-sm text-charcoal">{r.name}</span>
-                    {r.phone && <span className="text-xs text-charcoal/50 ms-2">{r.phone}</span>}
-                    {r.email && <span className="text-xs text-charcoal/50 ms-2">{r.email}</span>}
-                  </div>
-                </div>
-              </div>
-
-              {r.message && <p className="text-sm text-charcoal/70 mb-2">{r.message}</p>}
-
-              <div className="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-gold/10">
-                <span className="text-xs text-charcoal/40">
-                  {r.created_at ? new Date(r.created_at).toLocaleDateString("ar-EG") : ""}
-                </span>
-                <RequestActionButtons requestId={r.id} status={r.status || "new"} />
-              </div>
-            </div>
+            <RequestRow
+              key={r.id}
+              data={{
+                id: r.id,
+                type: r.type,
+                typeLabel,
+                name: r.name,
+                phone: r.phone,
+                email: r.email,
+                message: r.message,
+                status: r.status || "new",
+                created_at: r.created_at,
+                product: product ? { name_ar: product.name_ar, slug: product.slug } : null,
+                productIdUnknown: !product && r.product_id ? r.product_id : null,
+              }}
+            />
           );
         })}
       </div>

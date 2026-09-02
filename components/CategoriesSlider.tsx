@@ -80,7 +80,6 @@ export default function CategoriesSlider({ categories }: { categories: CategoryV
                 </div>
               </div>
               <div className="text-center pt-4">
-                <h3 className="font-playfair font-cairo font-bold text-xl text-charcoal">{c.name[locale]}</h3>
                 <div className="w-10 h-px bg-gold mx-auto my-2" />
                 <p className="text-charcoal/50 text-xs mb-2">
                   {c.count} {t("products_count")}

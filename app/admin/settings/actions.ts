@@ -1,7 +1,7 @@
 "use server";
 
 import { d1Query, d1Execute } from "@/lib/d1";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 const CORE_KEYS = ["phone", "whatsapp", "email", "site_name_ar", "site_name_en", "currency", "default_locale"];
 
@@ -18,6 +18,7 @@ export async function saveSetting(key: string, value: string) {
   }
   revalidatePath("/admin/settings");
   revalidatePath("/");
+  revalidateTag("site-settings");
 }
 
 export async function createSetting(key: string, groupName: string, value: string) {
@@ -32,6 +33,7 @@ export async function createSetting(key: string, groupName: string, value: strin
   revalidatePath("/");
   revalidatePath("/contact");
   revalidatePath("/about");
+  revalidateTag("site-settings");
 }
 
 export async function deleteSetting(key: string) {
@@ -43,4 +45,5 @@ export async function deleteSetting(key: string) {
   revalidatePath("/");
   revalidatePath("/contact");
   revalidatePath("/about");
+  revalidateTag("site-settings");
 }

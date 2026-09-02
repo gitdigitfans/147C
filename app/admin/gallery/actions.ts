@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { d1Execute } from "@/lib/d1";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export interface GallerySlideFormData {
   id?: string;
@@ -19,6 +19,7 @@ export interface GallerySlideFormData {
 function revalidateAll() {
   revalidatePath("/admin/gallery");
   revalidatePath("/");
+  revalidateTag("gallery");
 }
 
 export async function saveGallerySlide(data: GallerySlideFormData) {

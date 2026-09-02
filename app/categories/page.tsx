@@ -1,22 +1,10 @@
-﻿import { d1Query } from "@/lib/d1";
-import { categories as mockCategories } from "@/lib/data";
+﻿import { categories as mockCategories } from "@/lib/data";
+import { getActiveCategories, getCategoryCounts } from "@/lib/catalog";
 import CategoriesClient, { CategoryVM } from "./CategoriesClient";
 
 
 export default async function CategoriesPage() {
-  let realCategories: any[] = [];
-  try {
-    realCategories = await d1Query<any>("SELECT * FROM categories WHERE is_active=1 ORDER BY sort_order");
-  } catch {
-    realCategories = [];
-  }
-
-  let counts: any[] = [];
-  try {
-    counts = await d1Query<any>("SELECT category_id, COUNT(*) as count FROM products WHERE is_active=1 GROUP BY category_id");
-  } catch {
-    counts = [];
-  }
+  const [realCategories, counts] = await Promise.all([getActiveCategories(), getCategoryCounts()]);
   const countById = new Map(counts.map((c) => [c.category_id, c.count]));
 
   const categories: CategoryVM[] =

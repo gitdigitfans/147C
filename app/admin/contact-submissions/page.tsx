@@ -76,10 +76,33 @@ export default async function AdminContactSubmissionsPage({
             data = {};
           }
 
+          const { __source, name, phone, ...rest } = data;
+          const sourceLabel = __source === "consultation" ? "طلب استشارة" : __source ? "رسالة تواصل" : null;
+
           return (
             <div key={r.id} className="bg-white rounded-xl border border-gold/10 p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                  {name && <span className="font-bold text-charcoal">{name}</span>}
+                  {phone && (
+                    <span className="text-sm text-charcoal/60" dir="ltr">
+                      {phone}
+                    </span>
+                  )}
+                </div>
+                {sourceLabel && (
+                  <span
+                    className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-bold ${
+                      __source === "consultation" ? "bg-goldDark/10 text-goldDark" : "bg-charcoal/10 text-charcoal/70"
+                    }`}
+                  >
+                    {sourceLabel}
+                  </span>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                {Object.entries(data).map(([key, value]) => {
+                {Object.entries(rest).map(([key, value]) => {
                   const field = fieldMap[key];
                   const displayLabel = field?.label_ar || key;
                   return (

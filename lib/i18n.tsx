@@ -10,12 +10,14 @@ export const dict: Dict = {
   brand: { ar: "الفرعون للأثاث", en: "Pharaoh Furniture" },
   nav_home: { ar: "الرئيسية", en: "Home" },
   nav_shop: { ar: "المتجر", en: "Shop" },
-  nav_categories: { ar: "التصنيفات", en: "Categories" },
+  nav_categories: { ar: "الأقسام", en: "Categories" },
   nav_about: { ar: "من نحن", en: "About Us" },
   nav_services: { ar: "خدماتنا", en: "Services" },
-  nav_contact: { ar: "اتصل بنا", en: "Contact Us" },
+  nav_contact: { ar: "العناوين", en: "Locations" },
   nav_gallery: { ar: "معرض الصور", en: "Gallery" },
   nav_offers: { ar: "العروض", en: "Offers" },
+  nav_articles: { ar: "المقالات", en: "Articles" },
+  nav_consultation: { ar: "اطلب استشارة", en: "Request Consultation" },
 
   hero_cta: { ar: "تسوق الآن", en: "Shop Now" },
   latest_products: { ar: "أحدث المنتجات", en: "Latest Products" },
@@ -76,7 +78,7 @@ export const dict: Dict = {
   services_page_title: { ar: "خدماتنا", en: "Our Services" },
   services_page_sub: { ar: "نقدم لك تجربة متكاملة من التصميم حتى التسليم", en: "We offer you a complete experience from design to delivery" },
 
-  contact_page_title: { ar: "اتصل بنا", en: "Contact Us" },
+  contact_page_title: { ar: "العناوين", en: "Locations" },
   contact_page_sub: { ar: "يسعدنا تواصلك معنا في أي وقت", en: "We are happy to hear from you anytime" },
   form_name: { ar: "الاسم", en: "Name" },
   form_email: { ar: "البريد الإلكتروني", en: "Email" },
@@ -245,7 +247,7 @@ export const dict: Dict = {
 
   // Mobile bottom nav
   bottomnav_home: { ar: "الرئيسية", en: "Home" },
-  bottomnav_categories: { ar: "التصنيفات", en: "Categories" },
+  bottomnav_categories: { ar: "الأقسام", en: "Categories" },
   bottomnav_search: { ar: "بحث", en: "Search" },
   bottomnav_cart: { ar: "السلة", en: "Cart" },
   bottomnav_account: { ar: "حسابي", en: "Account" },
