@@ -50,7 +50,7 @@ export const dict: Dict = {
   sort_price_asc: { ar: "السعر: من الأقل للأعلى", en: "Price: Low to High" },
   sort_price_desc: { ar: "السعر: من الأعلى للأقل", en: "Price: High to Low" },
 
-  categories_title: { ar: "التصنيفات", en: "Categories" },
+  categories_title: { ar: "الأقسام", en: "Categories" },
   products_count: { ar: "منتج", en: "products" },
   explore_cta: { ar: "استكشف", en: "Explore" },
 
@@ -101,6 +101,10 @@ export const dict: Dict = {
   },
   quick_links: { ar: "روابط سريعة", en: "Quick Links" },
   our_categories: { ar: "تصنيفاتنا", en: "Our Categories" },
+  footer_policies_title: { ar: "سياسات", en: "Policies" },
+  footer_policy_exchange: { ar: "الاستبدال", en: "Exchange Policy" },
+  footer_policy_return: { ar: "الاسترجاع", en: "Return Policy" },
+  footer_policy_terms: { ar: "الشروط والأحكام", en: "Terms & Conditions" },
   newsletter_title: { ar: "النشرة البريدية", en: "Newsletter" },
   newsletter_placeholder: { ar: "بريدك الإلكتروني", en: "Your email" },
   newsletter_btn: { ar: "اشترك", en: "Subscribe" },

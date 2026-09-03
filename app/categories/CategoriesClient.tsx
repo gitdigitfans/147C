@@ -7,6 +7,7 @@ import { useLocale } from "@/lib/i18n";
 import { furnitureImg } from "@/lib/data";
 import { getCategoryIcon } from "@/lib/categoryIcons";
 import Reveal from "@/components/Reveal";
+import { cldUrl } from "@/lib/cloudinaryUrl";
 
 export interface CategoryVM {
   slug: string;
@@ -41,51 +42,31 @@ export default function CategoriesClient({ categories }: { categories: CategoryV
                 className="group"
               >
                 <div className="relative w-full aspect-square rounded-2xl overflow-hidden shadow-md">
-                  {/* always-on, continuously breathing ambient gold glow behind the arch */}
-                  <motion.div
-                    aria-hidden
-                    className="pointer-events-none absolute -inset-2 -z-10 rounded-2xl blur-xl bg-gold/35"
-                    animate={{ opacity: [0.35, 0.75, 0.35], scale: [0.97, 1.03, 0.97] }}
-                    transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: (i % 6) * 0.2 }}
-                  />
                   <img
-                    src={c.image || furnitureImg(c.seed, 600, 450)}
+                    src={c.image ? cldUrl(c.image, 500) : furnitureImg(c.seed, 600, 450)}
                     alt={c.name[locale]}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
-                  {/* always-visible dual-tone (dark → warm copper) gradient so the icon+name stay legible over any photo */}
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, rgba(15,10,8,0.88) 0%, rgba(15,10,8,0.4) 55%, rgba(196,90,40,0.5) 100%)",
-                    }}
-                  />
-                  {/* thin gold inset frame following the arch shape */}
-                    <div className="absolute inset-3 rounded-2xl border border-gold/50 pointer-events-none" />
-                  {/* folded-corner accent */}
+                  <div className="absolute inset-3 rounded-2xl border border-gold/50 pointer-events-none" />
                   <div
                     className="absolute top-0 end-0 w-6 h-6 bg-gold/70 pointer-events-none"
                     style={{ clipPath: "polygon(100% 0, 0 0, 100% 100%)" }}
                   />
-                  {/* continuously traveling diagonal light sweep across the card */}
-                  <div className="light-sweep" style={{ animationDelay: `${(i % 6) * 0.4}s` }} />
-                  {/* icon + name overlaid directly on the image - icon only shows once the admin assigns one */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-3 text-center pointer-events-none">
+                  {/* icon only overlaid on the image - the name is shown once, below the card - icon only shows once the admin assigns one */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     {c.iconUrl ? (
                       <img
-                        src={c.iconUrl}
+                        src={cldUrl(c.iconUrl, 100)}
                         alt=""
-                        className="w-14 h-14 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]"
+                        loading="lazy"
+                        decoding="async"
+                        className="w-14 h-14 object-contain"
                       />
                     ) : (
-                      Icon && (
-                        <Icon size={56} strokeWidth={1.5} className="text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]" />
-                      )
+                      Icon && <Icon size={56} strokeWidth={1.5} className="text-charcoal/70" />
                     )}
-                    <h3 className="font-playfair font-cairo font-extrabold text-xl sm:text-2xl text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] leading-snug">
-                      {c.name[locale]}
-                    </h3>
                   </div>
                 </div>
                 <div className="text-center pt-4">

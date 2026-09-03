@@ -49,11 +49,21 @@ export default function MobileBottomNav() {
   }, []);
 
   useEffect(() => {
-    if (searchOpen) searchInputRef.current?.focus();
-    if (!searchOpen) {
-      setSearchQuery("");
-      setResults([]);
+    if (searchOpen) {
+      // Delay focus slightly so the full-screen overlay's own mount/paint
+      // settles first - focusing immediately on iOS Safari can trigger the
+      // keyboard-open viewport resize before the overlay's fixed layout has
+      // stabilized, which is what caused the shrunk/misplaced search box.
+      const t = setTimeout(() => searchInputRef.current?.focus(), 50);
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        clearTimeout(t);
+        document.body.style.overflow = prevOverflow;
+      };
     }
+    setSearchQuery("");
+    setResults([]);
   }, [searchOpen]);
 
   // Debounced instant-results lookup as the user types, instead of only
@@ -118,63 +128,69 @@ export default function MobileBottomNav() {
       <AnimatePresence>
         {searchOpen && (
           <motion.div
-            initial={{ y: 60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 60, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-x-0 z-40 sm:hidden px-3"
-            style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[60] sm:hidden bg-ivory flex flex-col"
           >
             <form
               onSubmit={handleSearchSubmit}
-              className="flex items-center gap-2 bg-white rounded-full border border-gold/40 shadow-lg px-2 py-2 ps-3"
+              className="flex items-center gap-2 p-3 border-b border-gold/10 shrink-0"
+              style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}
             >
-              <Search size={18} className="text-goldDark shrink-0" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("search_placeholder")}
-                className="flex-1 bg-transparent outline-none text-sm text-charcoal"
-              />
+              <div className="flex-1 flex items-center gap-2 bg-white rounded-full border border-gold/40 px-3 py-2.5">
+                <Search size={18} className="text-goldDark shrink-0" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t("search_placeholder")}
+                  className="flex-1 bg-transparent outline-none text-sm text-charcoal min-w-0"
+                />
+              </div>
               <button
-                type="submit"
-                className="shrink-0 px-4 py-1.5 rounded-full bg-gradient-to-br from-gold to-goldDark text-white text-sm font-bold"
+                type="button"
+                onClick={() => setSearchOpen(false)}
+                aria-label={t("pdp_close")}
+                className="shrink-0 px-3 py-2.5 rounded-full text-charcoal/60 font-bold text-sm"
               >
-                {t("bottomnav_search")}
+                {locale === "ar" ? "إلغاء" : "Cancel"}
               </button>
             </form>
 
-            {searchQuery.trim() && (
-              <div className="mt-2 bg-white rounded-2xl border border-gold/20 shadow-lg overflow-hidden max-h-72 overflow-y-auto">
-                {searching ? (
-                  <div className="p-4 text-center text-xs text-charcoal/40">...</div>
+            <div className="flex-1 overflow-y-auto px-3 pb-3">
+              {searchQuery.trim() ? (
+                searching ? (
+                  <div className="p-6 text-center text-sm text-charcoal/40">...</div>
                 ) : results.length > 0 ? (
-                  results.map((p) => (
-                    <Link
-                      key={p.id}
-                      href={`/shop/${p.slug}`}
-                      onClick={() => setSearchOpen(false)}
-                      className="flex items-center gap-3 p-2.5 border-b border-gold/5 last:border-0 hover:bg-ivory/60"
-                    >
-                      <img
-                        src={cldUrl(p.image, 100)}
-                        alt=""
-                        onError={onImgError}
-                        className="w-11 h-11 rounded-lg object-cover shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-charcoal truncate">{p.name[locale]}</p>
-                        <p className="text-xs text-goldDark font-bold">{p.price?.toLocaleString()} {t("currency")}</p>
-                      </div>
-                    </Link>
-                  ))
+                  <div className="bg-white rounded-2xl border border-gold/20 overflow-hidden mt-3">
+                    {results.map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/shop/${p.slug}`}
+                        onClick={() => setSearchOpen(false)}
+                        className="flex items-center gap-3 p-2.5 border-b border-gold/5 last:border-0 hover:bg-ivory/60"
+                      >
+                        <img
+                          src={cldUrl(p.image, 100)}
+                          alt=""
+                          onError={onImgError}
+                          className="w-11 h-11 rounded-lg object-cover shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-charcoal truncate">{p.name[locale]}</p>
+                          <p className="text-xs text-goldDark font-bold">{p.price?.toLocaleString()} {t("currency")}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="p-4 text-center text-xs text-charcoal/40">{t("search_no_results")}</div>
-                )}
-              </div>
-            )}
+                  <div className="p-6 text-center text-sm text-charcoal/40">{t("search_no_results")}</div>
+                )
+              ) : null}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

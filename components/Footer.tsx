@@ -40,6 +40,12 @@ const navKeys: { key: string; href: string }[] = [
   { key: "nav_contact", href: "/contact" },
 ];
 
+const policyKeys: { key: string; href: string }[] = [
+  { key: "footer_policy_exchange", href: "/exchange-policy" },
+  { key: "footer_policy_return", href: "/return-policy" },
+  { key: "footer_policy_terms", href: "/terms" },
+];
+
 export interface FooterSettings {
   site_name_ar?: string;
   site_name_en?: string;
@@ -87,7 +93,7 @@ export default function Footer({ settings, categories: dbCategories }: FooterPro
 
   return (
     <footer className="bg-charcoal text-ivory pt-16 pb-6 mt-20">
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-10">
         <div>
           <div className="flex items-center gap-3 mb-4">
             <img src="/logo.png" alt={brandName} className="w-12 h-12 rounded-full object-cover bg-bronze-gradient" />
@@ -140,6 +146,19 @@ export default function Footer({ settings, categories: dbCategories }: FooterPro
                 </Link>
               </li>
             )}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="font-cairo font-bold text-gold mb-4">{t("footer_policies_title")}</h4>
+          <ul className="space-y-2 text-sm text-ivory/70">
+            {policyKeys.map((p) => (
+              <li key={p.key}>
+                <Link href={p.href} className="hover:text-gold transition-colors">
+                  {t(p.key)}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 

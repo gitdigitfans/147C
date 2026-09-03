@@ -325,6 +325,25 @@ export default function ProductDetailClient({
     return () => clearInterval(interval);
   }, [displayImages.length, galleryHovered, lightboxOpen, isDragging]);
 
+  // Preload the previous/next images at the same resolution the main
+  // gallery renders (900px) so a swipe or autoplay tick shows the new image
+  // instantly from the browser's HTTP cache instead of waiting on a fresh
+  // network fetch - without this, every swipe had a visible multi-second
+  // delay while the next photo downloaded.
+  useEffect(() => {
+    if (displayImages.length <= 1) return;
+    const nextIdx = (activeImage + 1) % displayImages.length;
+    const prevIdx = (activeImage - 1 + displayImages.length) % displayImages.length;
+    [nextIdx, prevIdx].forEach((idx) => {
+      const img = new Image();
+      img.src = cldUrl(displayImages[idx], 900);
+      if (lightboxOpen) {
+        const lbImg = new Image();
+        lbImg.src = cldUrl(displayImages[idx], 1600);
+      }
+    });
+  }, [activeImage, displayImages, lightboxOpen]);
+
   function goNext() {
     setActiveImage((i) => (i + 1) % displayImages.length);
   }
@@ -517,7 +536,7 @@ export default function ProductDetailClient({
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.98 }}
                       transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 touch-pan-y cursor-pointer"
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 touch-none cursor-pointer"
                       drag={displayImages.length > 1 ? "x" : false}
                       dragConstraints={{ left: 0, right: 0 }}
                       dragElastic={0.3}
@@ -1411,7 +1430,7 @@ export default function ProductDetailClient({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="max-w-full max-h-full object-contain rounded-lg touch-pan-y"
+                className="max-w-full max-h-full object-contain rounded-lg touch-none"
                 onClick={(e) => e.stopPropagation()}
                 drag={displayImages.length > 1 ? "x" : false}
                 dragConstraints={{ left: 0, right: 0 }}
