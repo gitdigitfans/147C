@@ -143,7 +143,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-3 xl:gap-6 2xl:gap-8 min-w-0">
+        <nav aria-label="التنقل الرئيسي" className="hidden lg:flex items-center gap-3 xl:gap-6 2xl:gap-8 min-w-0">
           {navKeys.map((n) => (
             <Link
               key={n.key}
@@ -261,7 +261,7 @@ export default function Header() {
           )}
 
           <button
-            className="lg:hidden text-charcoal"
+            className="lg:hidden text-charcoal p-2"
             onClick={() => setOpen(true)}
             aria-label="menu"
           >
@@ -298,7 +298,7 @@ export default function Header() {
             >
               {/* Brand row */}
               <div className="flex justify-between items-center px-5 py-4 border-b border-gold/15">
-                <button onClick={() => setOpen(false)} aria-label="close" className="text-charcoal">
+                <button onClick={() => setOpen(false)} aria-label="close" className="text-charcoal p-2.5 -m-2.5">
                   <X size={24} />
                 </button>
                 <span className="flex items-center gap-2">
@@ -334,7 +334,7 @@ export default function Header() {
               </form>
 
               {/* Full-width list, one item per row with dividers - matches the reference */}
-              <nav className="flex flex-col mt-2">
+              <nav aria-label="قائمة التنقل" className="flex flex-col mt-2">
                 <Link
                   href="/"
                   onClick={() => setOpen(false)}

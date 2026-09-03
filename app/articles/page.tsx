@@ -1,7 +1,16 @@
+import type { Metadata } from "next";
 import { d1Query } from "@/lib/d1";
+import { buildMetadata } from "@/lib/seo";
 import ArticlesClient, { ArticleListItem } from "./ArticlesClient";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = buildMetadata({
+  title: "المقالات",
+  description:
+    "نصائح وأفكار من الفرعون للأثاث عن الديكور المنزلي، اختيار الأثاث المناسب، والعناية بقطعك الخشبية - تابع مقالاتنا لتطوير ذوقك في التأثيث وتجهيز بيت أحلامك.",
+  path: "/articles",
+});
 
 async function fetchArticles(): Promise<ArticleListItem[]> {
   try {

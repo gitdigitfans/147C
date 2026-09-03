@@ -14,10 +14,24 @@ import ImageProtection from "@/components/ImageProtection";
 import { d1Query } from "@/lib/d1";
 import { unstable_cache } from "next/cache";
 import { getSiteSettings, getActiveCategories } from "@/lib/catalog";
+import { SITE_URL, SITE_NAME } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "الفرعون للأثاث | Pharaoh Furniture",
   description: "شركة مصرية متخصصة في تصميم وتصنيع الأثاث المنزلي والفندقي الفاخر",
+  metadataBase: new URL(SITE_URL),
+  verification: {
+    google: "TqzDgJxOFJRKaqYGrnE2ySzD1HzYFUnvagPMlL1nFgo",
+  },
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: SITE_NAME,
+  alternateName: "Pharaoh Furniture",
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.png`,
 };
 
 // getSiteSettings/getActiveCategories are shared with app/page.tsx and
@@ -95,6 +109,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="ar" dir="rtl">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         {gtmContainerId && (
           <Script id="gtm-head" strategy="afterInteractive">
             {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':

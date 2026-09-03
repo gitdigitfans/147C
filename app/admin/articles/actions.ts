@@ -2,7 +2,7 @@
 
 import { randomUUID } from "crypto";
 import { d1Query, d1Execute } from "@/lib/d1";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export interface ArticleFormData {
   id?: string;
@@ -26,6 +26,7 @@ function revalidateAll() {
   revalidatePath("/admin/articles");
   revalidatePath("/articles");
   revalidatePath("/");
+  revalidateTag("articles");
 }
 
 export async function saveArticle(data: ArticleFormData) {

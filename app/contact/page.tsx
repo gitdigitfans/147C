@@ -1,5 +1,14 @@
-﻿import { d1Query } from "@/lib/d1";
+﻿import type { Metadata } from "next";
+import { d1Query } from "@/lib/d1";
+import { buildMetadata } from "@/lib/seo";
 import ContactClient, { BranchVM, ContactFieldVM } from "./ContactClient";
+
+export const metadata: Metadata = buildMetadata({
+  title: "العناوين",
+  description:
+    "عناوين وفروع الفرعون للأثاث وبيانات التواصل - رقم الهاتف والواتساب والبريد الإلكتروني وموقعنا على الخريطة لزيارة صالة العرض والاطلاع على منتجاتنا.",
+  path: "/contact",
+});
 
 
 async function getSetting(key: string): Promise<string> {

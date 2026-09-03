@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { d1Query } from "@/lib/d1";
 import { unstable_cache } from "next/cache";
 import { getSiteSettings } from "@/lib/catalog";
+import { buildMetadata, SITE_NAME } from "@/lib/seo";
+import { cldOgUrl } from "@/lib/cloudinaryUrl";
 import { createClient } from "@/lib/supabase/server";
 import { products as mockProducts, categories as mockCategories, furnitureImg } from "@/lib/data";
 import ProductDetailClient, { type ProductVM, type RelatedVM, type ReviewVM } from "./ProductDetailClient";
@@ -39,6 +42,50 @@ const fetchDbProduct = unstable_cache(
   ["product-by-slug"],
   { revalidate: 60, tags: ["products"] }
 );
+
+const fetchPrimaryImage = unstable_cache(
+  async (productId: string) => {
+    const rows = await d1Query<{ url: string }>(
+      "SELECT url FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, sort_order LIMIT 1",
+      [productId]
+    ).catch(() => []);
+    return rows[0]?.url || null;
+  },
+  ["product-primary-image"],
+  { revalidate: 60, tags: ["products"] }
+);
+
+// Reuses the already-unstable_cache'd fetchDbProduct above - no extra
+// uncached D1 query is introduced by adding per-product metadata.
+// force-dynamic (below) means this re-runs every request, but the
+// underlying D1 reads it depends on are both cached.
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const dbProduct = await fetchDbProduct(params.slug).catch(() => null);
+  if (!dbProduct) {
+    return buildMetadata({
+      title: "منتج غير موجود",
+      description: "هذا المنتج لم يعد متوفرًا. تصفح تشكيلتنا الكاملة من الأثاث الفاخر على الفرعون للأثاث.",
+      path: `/shop/${params.slug}`,
+    });
+  }
+
+  const seoTitle = dbProduct.seo_title_ar || dbProduct.name_ar;
+  const rawDescription =
+    dbProduct.seo_description_ar || dbProduct.short_desc_ar || dbProduct.description_ar || "";
+  const description =
+    rawDescription.length > 157 ? `${rawDescription.slice(0, 157)}...` : rawDescription || `${dbProduct.name_ar} من ${SITE_NAME} - جودة عالية وتصميم فاخر.`;
+
+  const primaryImageUrl = await fetchPrimaryImage(dbProduct.id);
+  const image = primaryImageUrl ? cldOgUrl(primaryImageUrl) : undefined;
+
+  return buildMetadata({
+    title: seoTitle,
+    description,
+    path: `/shop/${params.slug}`,
+    image,
+    type: "product",
+  });
+}
 
 const RELATED_RAIL_LIMIT = 5;
 
@@ -291,17 +338,50 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       categorySlug: dbProduct.category_slug || undefined,
     };
 
+    const ratingCount = reviews.length;
+    const ratingValue = ratingCount > 0 ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / ratingCount : 0;
+
+    const productJsonLd: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name.ar,
+      description: product.description.ar || product.shortDescription?.ar || product.name.ar,
+      image: product.images,
+      brand: { "@type": "Brand", name: SITE_NAME },
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "EGP",
+        price: product.price,
+        availability: product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      },
+      ...(ratingCount > 0
+        ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: ratingValue.toFixed(1),
+              reviewCount: ratingCount,
+            },
+          }
+        : {}),
+    };
+
     return (
-      <ProductDetailClient
-        product={product}
-        similar={similar.map(normalizeRelatedRow)}
-        related={related.map(normalizeRelatedRow)}
-        alsoBought={alsoBought.map(normalizeRelatedRow)}
-        reviews={reviews}
-        initialWishlisted={wishlisted}
-        whatsappNumber={whatsappNumber}
-        attributes={attributes}
-      />
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        />
+        <ProductDetailClient
+          product={product}
+          similar={similar.map(normalizeRelatedRow)}
+          related={related.map(normalizeRelatedRow)}
+          alsoBought={alsoBought.map(normalizeRelatedRow)}
+          reviews={reviews}
+          initialWishlisted={wishlisted}
+          whatsappNumber={whatsappNumber}
+          attributes={attributes}
+        />
+      </>
     );
   }
 

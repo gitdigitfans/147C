@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import { d1Query } from "@/lib/d1";
+import { buildMetadata } from "@/lib/seo";
 import { services as mockServices } from "@/lib/data";
 import ServicesClient from "./ServicesClient";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = buildMetadata({
+  title: "خدماتنا",
+  description:
+    "من التصميم الداخلي إلى التصنيع حسب الطلب والتركيب والتوصيل - تعرف على خدمات الفرعون للأثاث المتكاملة لتجهيز بيتك أو مشروعك الفندقي بأعلى مستوى.",
+  path: "/services",
+});
 
 async function fetchServiceCards() {
   try {

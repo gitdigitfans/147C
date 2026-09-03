@@ -1,8 +1,17 @@
-﻿import { d1Query } from "@/lib/d1";
+﻿import type { Metadata } from "next";
+import { d1Query } from "@/lib/d1";
 import { unstable_cache } from "next/cache";
+import { buildMetadata } from "@/lib/seo";
 import { getActiveCategories } from "@/lib/catalog";
 import { categories as mockCategories, products as mockProducts } from "@/lib/data";
 import ShopClient, { ShopCategoryVM, ShopProductVM } from "./ShopClient";
+
+export const metadata: Metadata = buildMetadata({
+  title: "المتجر - كل المنتجات",
+  description:
+    "تصفح كل تشكيلات الفرعون للأثاث في مكان واحد: غرف نوم، صالونات، غرف سفرة، انتريهات وأكثر - فلترة وبحث سهل لإيجاد القطعة المناسبة لبيتك بأفضل سعر وجودة.",
+  path: "/shop",
+});
 
 // Wrapped in unstable_cache: this query has no LIMIT by design (ShopClient
 // filters/searches/sorts the full list entirely client-side), so without

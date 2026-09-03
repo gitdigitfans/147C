@@ -1,5 +1,7 @@
-﻿import { d1Query } from "@/lib/d1";
+﻿import type { Metadata } from "next";
+import { d1Query } from "@/lib/d1";
 import { unstable_cache } from "next/cache";
+import { buildMetadata } from "@/lib/seo";
 import { getActiveCategories, getCategoryCounts } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
 import { products as mockProducts, heroSlides as mockHeroSlides, testimonials as mockTestimonials, categories as mockCategories, furnitureImg } from "@/lib/data";
@@ -7,6 +9,13 @@ import HomeClient, { type NormalizedProduct, type NormalizedHero, type Normalize
 import type { GallerySlideItem } from "@/components/Gallery3D";
 import type { CategoryVM } from "@/components/CategoriesSlider";
 
+
+export const metadata: Metadata = buildMetadata({
+  title: "الفرعون للأثاث | أثاث منزلي وفندقي فاخر مصنوع في مصر",
+  description:
+    "تسوق أفضل تشكيلات غرف النوم والصالونات والسفرة من الفرعون للأثاث - تصميم وتصنيع أثاث فاخر بخامات عالية الجودة وضمان حقيقي، مع توصيل لجميع محافظات مصر.",
+  path: "/",
+});
 
 function mockSlug(product: { id: number; category: string }) {
   return `${product.category}-${product.id}`;

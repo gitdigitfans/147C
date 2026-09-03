@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import { d1Query } from "@/lib/d1";
+import { buildMetadata } from "@/lib/seo";
 import GalleryClient from "./GalleryClient";
 import type { GallerySlideItem } from "@/components/Gallery3D";
+
+export const metadata: Metadata = buildMetadata({
+  title: "معرض الصور",
+  description:
+    "لمحة من أجمل تصاميم وتنفيذات الفرعون للأثاث - استعرض معرض الصور لتصاميم غرف النوم والصالونات والسفرة الفاخرة، واستلهم أفكارك قبل ما تختار قطعتك المفضلة.",
+  path: "/gallery",
+});
 
 function normalizeDbGallerySlide(row: any): GallerySlideItem {
   return {

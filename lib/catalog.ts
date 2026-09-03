@@ -52,3 +52,36 @@ export const getCategoryCounts = unstable_cache(
   ["category-counts"],
   { revalidate: 60, tags: ["products", "categories"] }
 );
+
+// Sitemap-only reads - a longer TTL is fine here since search-engine
+// freshness doesn't need the same 60s bound as user-facing pages, still
+// tagged so an admin save busts it rather than waiting out the full hour.
+export const getAllProductSlugsForSitemap = unstable_cache(
+  async () => {
+    try {
+      return await d1Query<{ slug: string; updated_at: string | null; created_at: string | null }>(
+        "SELECT slug, updated_at, created_at FROM products WHERE is_active=1",
+        []
+      );
+    } catch {
+      return [];
+    }
+  },
+  ["sitemap-product-slugs"],
+  { revalidate: 3600, tags: ["products"] }
+);
+
+export const getAllPublishedArticleSlugsForSitemap = unstable_cache(
+  async () => {
+    try {
+      return await d1Query<{ slug: string; updated_at: string | null; created_at: string | null }>(
+        "SELECT slug, updated_at, created_at FROM articles WHERE is_published=1",
+        []
+      );
+    } catch {
+      return [];
+    }
+  },
+  ["sitemap-article-slugs"],
+  { revalidate: 3600, tags: ["articles"] }
+);

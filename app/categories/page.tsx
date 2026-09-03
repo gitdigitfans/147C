@@ -1,6 +1,15 @@
-﻿import { categories as mockCategories } from "@/lib/data";
+﻿import type { Metadata } from "next";
+import { categories as mockCategories } from "@/lib/data";
+import { buildMetadata } from "@/lib/seo";
 import { getActiveCategories, getCategoryCounts } from "@/lib/catalog";
 import CategoriesClient, { CategoryVM } from "./CategoriesClient";
+
+export const metadata: Metadata = buildMetadata({
+  title: "الأقسام",
+  description:
+    "تصفح أقسام الفرعون للأثاث: غرف نوم، صالونات، غرف سفرة، انتريهات، غرف أطفال وأكثر - اختر القسم المناسب لاكتشاف تشكيلة كاملة من قطع الأثاث الفاخرة.",
+  path: "/categories",
+});
 
 
 export default async function CategoriesPage() {

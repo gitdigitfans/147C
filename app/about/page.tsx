@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import { d1Query } from "@/lib/d1";
+import { buildMetadata } from "@/lib/seo";
 import { features as mockFeatures } from "@/lib/data";
 import AboutClient from "./AboutClient";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = buildMetadata({
+  title: "من نحن",
+  description:
+    "الفرعون للأثاث شركة مصرية متخصصة في تصميم وتصنيع الأثاث المنزلي والفندقي الفاخر، بخبرة طويلة في الحرفية المصرية الأصيلة وأعلى معايير الجودة والضمان.",
+  path: "/about",
+});
 
 async function fetchFeatureCards() {
   try {

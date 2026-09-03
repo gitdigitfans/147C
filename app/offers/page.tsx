@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import { d1Query } from "@/lib/d1";
+import { buildMetadata } from "@/lib/seo";
 import OffersClient, { OfferVM } from "./OffersClient";
+
+export const metadata: Metadata = buildMetadata({
+  title: "العروض والخصومات",
+  description:
+    "اكتشف أحدث عروض وخصومات الفرعون للأثاث على غرف النوم والصالونات والسفرة - فرصتك لاقتناء أثاث فاخر بأسعار مميزة لفترة محدودة، تصفح العروض الآن قبل انتهائها.",
+  path: "/offers",
+});
 
 interface OfferRow {
   id: number | string;

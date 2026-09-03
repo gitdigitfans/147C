@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import { d1Query } from "@/lib/d1";
+import { buildMetadata } from "@/lib/seo";
 import ConsultationClient from "./ConsultationClient";
+
+export const metadata: Metadata = buildMetadata({
+  title: "اطلب استشارة",
+  description:
+    "احصل على استشارة مجانية من فريق الفرعون للأثاث لاختيار القطع المناسبة لمساحتك وذوقك - اترك بياناتك وهنتواصل معك سريعًا لمساعدتك في قرار الشراء.",
+  path: "/consultation",
+});
 
 async function fetchWhatsappNumber(): Promise<string> {
   try {

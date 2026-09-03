@@ -196,6 +196,7 @@ export default function MobileBottomNav() {
       </AnimatePresence>
 
       <nav
+        aria-label="شريط التنقل السفلي"
         className="fixed bottom-0 inset-x-0 z-40 sm:hidden bg-ivory/95 backdrop-blur-md border-t border-gold/10 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom)]"
       >
         <div className="relative flex items-center justify-between px-4 h-16">

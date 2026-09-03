@@ -1,4 +1,13 @@
+import type { Metadata } from "next";
 import PolicyPage, { type PolicySection } from "@/components/PolicyPage";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: "الشروط والأحكام",
+  description:
+    "الشروط والأحكام الخاصة باستخدام موقع الفرعون للأثاث - قواعد استخدام الموقع، حقوق الملكية الفكرية، وآلية التعامل مع الطلبات والأسعار والحسابات.",
+  path: "/terms",
+});
 
 const sections: PolicySection[] = [
   {
