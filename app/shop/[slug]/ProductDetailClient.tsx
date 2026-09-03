@@ -163,12 +163,9 @@ function RelatedRail({ title, items, locale }: { title: string; items: RelatedVM
       <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
         <div className="overflow-hidden -mx-4 px-4">
           <motion.div
-            className="flex gap-4 transition-transform duration-700 ease-out touch-pan-y"
-            style={
-              hasEnoughToSlide
-                ? { transform: `translateX(${dir * index * itemWidthPct}%)` }
-                : undefined
-            }
+            className="flex gap-4 touch-pan-x"
+            animate={hasEnoughToSlide ? { x: `${dir * index * itemWidthPct}%` } : undefined}
+            transition={{ duration: 0.7, ease: "easeOut" }}
             drag={hasEnoughToSlide && stepCount > 1 ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.15}
